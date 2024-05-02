@@ -1,4 +1,4 @@
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request,) {
   if (request.message === "startProcess") {
     console.log("Process started from content.js");
     //sendResponse({ message: "Process started" });

@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Title Saver",
+    "name": "AI based Video comment generator",
     "version": "1.0",
-    "description": "Get the title of the video and save it in local storage.",
+    "description": "It will play the video, like it and comment on it using groq ai.",
     "permissions": ["activeTab","tabs","storage"],
     "action": {
       "default_popup": "popup.html",
