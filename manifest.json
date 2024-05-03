@@ -5,8 +5,7 @@
   "description": "It will play the video, like it and comment on it using groq ai.",
   "permissions": [
     "activeTab",
-    "storage",
-    "scripting"
+    "storage"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -34,4 +33,4 @@
   "background": {
     "service_worker": "background.js"
   }
-}
+  

@@ -1,16 +1,10 @@
-chrome.runtime.onMessage.addListener(async function (
-  request,
-  sender,
-  sendResponse
-) {
+
+chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
   if (request.message === "startComment") {
     try {
       const title = await getTitleFromStorage();
       if (!title) {
-        chrome.storage.local.get(["title"], (result) => {
-        console.log("The title of the video is: " + result.title);
-        return result.title;  
-        });
+        throw new Error("Title not found in storage");
       }
       console.log("The title of the video is: " + title);
       await generateComment(title);
@@ -19,16 +13,21 @@ chrome.runtime.onMessage.addListener(async function (
       console.error("Error:", error);
       sendResponse({ success: false, error: error.message }); // Sending error response
     }
-  } else {
+  }
+  else{
     console.log("Running in background");
   }
 });
 
 async function getTitleFromStorage() {
-  // Retrieve the title from local storage
-  chrome.storage.local.get(["title"], (result) => {
-    console.log("The title of the video is: " + result.title);
-    return result.title;
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get("title", (result) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result.title);
+      }
+    });
   });
 }
 
@@ -47,42 +46,26 @@ async function generateComment(title) {
     },
   ];
 
-  console.log("title", title); // Moved here for logging
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "response-format": "json_object",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({ messages, model: "mixtral-8x7b-32768" }),
+        });
 
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "response-format": "json_object",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ messages, model: "mixtral-8x7b-32768" }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Network response was not ok: ${response.statusText}`);
-  }
+        console.log(response);
+        if (!response.ok) {
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`
+          );
+        }
 
   const data = await response.json();
   console.log(data);
   const comment = data.choices[0].message.content;
   console.log("Generated comment:", comment);
-
-  // Send the comment to the content script
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: (comment) => {
-      // This function will be executed in the context of the content script
-      // Inject the comment into the DOM or wherever it needs to be used
-      console.log("Received comment:", comment);
-      // Example: Inject the comment into a textarea
-      const textarea = document.querySelector("textarea");
-      if (textarea) {
-        textarea.value = comment;
-      }
-    },
-    args: [comment], // Pass the comment as an argument
-  });
 }
-
-// background.js
