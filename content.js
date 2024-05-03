@@ -64,10 +64,6 @@ chrome.runtime.onMessage.addListener(function (request) {
       subscribeButton.click();
       // Wait for subscription action to complete
 
-
-
-
-      
       // Wait for placeholder area to be available
       var placeholderInterval = setInterval(function () {
         var placeholder = document.getElementById("placeholder-area");
@@ -75,7 +71,21 @@ chrome.runtime.onMessage.addListener(function (request) {
           clearInterval(placeholderInterval);
           placeholder.focus();
           placeholder.click();
-          document.execCommand("insertText", true, "nice video");
+          // document.execCommand("insertText", true, "nice video");
+
+          // Listen for message from the background script
+          chrome.runtime.onMessage.addListener(
+            (message, sender, sendResponse) => {
+              // Check if the message is the comment
+              if (message.comment) {
+                // Use the received comment, for example, inject it into a textarea
+                const textarea = document.querySelector("textarea");
+                if (textarea) {
+                  textarea.value = message.comment;
+                }
+              }
+            }
+          );
 
           // Wait for submit button to be available
           var buttonInterval = setInterval(function () {
@@ -94,7 +104,5 @@ chrome.runtime.onMessage.addListener(function (request) {
     }, 3000); // Wait for 2 seconds after subscription click
     // alert("The title of the video is: " + title);
   }
-
 });
 chrome.runtime.sendMessage({ message: "startComment" });
-
